@@ -137,7 +137,7 @@ export default function Home() {
                   <div className={`px-3.5 py-2.5 text-sm leading-relaxed max-w-[80vw] sm:max-w-md ${m.role === 'user' ? 'chat-user' : 'chat-bot'} rounded-2xl`}>
                     {m.text.split('\n').map((l, j) => <span key={j}>{l}<br /></span>)}
                   </div>
-                  <div className="text-[10px] text-white/25 mt-1 px-1">{new Date().toLocaleTimeString()} {m.emotion && icon(m.emotion)} {m.source === 'ollama' && '🦙'}</div>
+                  <div className="text-[10px] text-white/25 mt-1 px-1 flex items-center gap-1">{m.emotion && <span>{icon(m.emotion)}</span>} {m.source === 'ollama' && <span>🦙</span>}</div>
                 </div>
                 {m.role === 'user' && <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-xs ml-2 mt-0.5 flex-shrink-0">U</div>}
               </div>
