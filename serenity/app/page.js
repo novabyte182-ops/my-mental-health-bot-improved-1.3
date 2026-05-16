@@ -19,9 +19,11 @@ export default function Home() {
   const [bStep, setBStep] = useState(0)
   const [bCount, setBCount] = useState(0)
   const [bDetails, setBDetails] = useState({})
+  const [mounted, setMounted] = useState(false)
   const endRef = useRef(null)
   const canvasRef = useRef(null)
 
+  useEffect(() => { setMounted(true) }, [])
   useEffect(() => { scrollToEnd() }, [msgs])
   const scrollToEnd = () => endRef.current?.scrollIntoView({ behavior: 'smooth' })
 
@@ -105,7 +107,7 @@ export default function Home() {
 
   return (
     <div className="h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #0f0c29, #1a1a4e, #24243e)' }}>
-      <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />
+      {mounted && <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />}
 
       <div className="relative z-10 flex items-center gap-2 p-3 pb-0 overflow-x-auto">
         <div className="flex items-center gap-2 mr-3 flex-shrink-0">
@@ -129,7 +131,7 @@ export default function Home() {
                   <div className={`px-3.5 py-2.5 text-sm leading-relaxed max-w-[80vw] sm:max-w-md ${m.role === 'user' ? 'chat-user' : 'chat-bot'} rounded-2xl`}>
                     {m.text.split('\n').map((l, j) => <span key={j}>{l}<br /></span>)}
                   </div>
-                  <div className="text-[10px] text-white/25 mt-1 px-1">{new Date().toLocaleTimeString()} {m.emotion && icon(m.emotion)} {m.source === 'ollama' && '🦙'}</div>
+                  <div className="text-[10px] text-white/25 mt-1 px-1">{mounted ? new Date().toLocaleTimeString() : '00:00:00'} {m.emotion && icon(m.emotion)} {m.source === 'ollama' && '🦙'}</div>
                 </div>
                 {m.role === 'user' && <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-xs ml-2 mt-0.5 flex-shrink-0">U</div>}
               </div>
