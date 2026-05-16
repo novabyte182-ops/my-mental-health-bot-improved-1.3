@@ -4,17 +4,18 @@ const history = []
 
 export async function POST(req) {
   try {
-    const { text, userName } = await req.json()
+    const { text } = await req.json()
     if (!text?.trim()) return Response.json({ error: 'No message' }, { status: 400 })
 
-    const result = await generateReply(text, history.slice(-10), userName)
+    const result = await generateReply(text, history.slice(-10))
 
     history.push({ user: text.slice(0, 500), bot: result.reply.slice(0, 1000), emotion: result.emotion, source: result.source, time: Date.now() })
     if (history.length > 100) history.splice(0, history.length - 100)
 
     return Response.json(result)
-  } catch {
-    return Response.json({ reply: "I hear you. Tell me more about what's going on.", emotion: 'neutral', source: 'fallback' })
+  } catch (e) {
+    console.log("[v0] API error:", e.message)
+    return Response.json({ reply: "I hear you. Tell me more about what's on your mind.", emotion: 'neutral', source: 'fallback' })
   }
 }
 
