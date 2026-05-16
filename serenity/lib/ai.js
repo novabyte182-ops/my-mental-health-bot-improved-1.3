@@ -170,7 +170,8 @@ export function isCrisis(text) {
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434'
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'mistral:7b'
 
-const THERAPIST_SYSTEM_PROMPT = `You are Serenity, a warm, empathetic AI wellness companion trained in therapeutic communication. Your approach integrates person-centered therapy, CBT, DBT, ACT, and motivational interviewing.
+export function getTherapistSystemPrompt(userName = null, recentContext = null) {
+  return `You are Serenity, a warm, empathetic AI wellness companion trained in therapeutic communication. Your approach integrates person-centered therapy, CBT, DBT, ACT, and motivational interviewing.
 
 Core principles:
 - Use active listening: reflect, validate, and normalize the person's feelings
@@ -180,9 +181,17 @@ Core principles:
 - Use evidence-based techniques: gentle Socratic questioning, scaling questions, exploring values, identifying strengths, and supporting self-compassion
 - Keep responses to 2-4 sentences — warm, focused, and therapeutic
 - Match the person's language and emotional tone
-- Remember: the person is the expert on their own life; your role is to facilitate insight, not provide answers`
+- Remember: the person is the expert on their own life; your role is to facilitate insight, not provide answers
 
-export async function queryOllama(messages) {
+${userName ? `- This conversation is with ${userName}. Use their name occasionally to personalize the connection.` : ''}
+${recentContext ? `- Recent context: ${recentContext}` : ''}
+
+You have years of experience as a compassionate therapeutic companion. You provide evidence-based guidance while maintaining appropriate boundaries.`
+}
+
+const THERAPIST_SYSTEM_PROMPT = getTherapistSystemPrompt()
+
+export async function queryOllama(messages, systemPrompt = THERAPIST_SYSTEM_PROMPT) {
   try {
     const recentMessages = messages.slice(-6)
     const res = await fetch(`${OLLAMA_URL}/api/chat`, {
@@ -191,7 +200,7 @@ export async function queryOllama(messages) {
       body: JSON.stringify({
         model: OLLAMA_MODEL,
         messages: [
-          { role: 'system', content: THERAPIST_SYSTEM_PROMPT },
+          { role: 'system', content: systemPrompt },
           ...recentMessages
         ],
         stream: false,
@@ -217,7 +226,7 @@ export async function checkOllama() {
   }
 }
 
-export async function generateReply(text, history = []) {
+export async function generateReply(text, history = [], userName = null) {
   if (isCrisis(text)) {
     return { reply: CRISIS_RESPONSE, emotion: 'crisis', source: 'safety' }
   }
@@ -230,7 +239,11 @@ export async function generateReply(text, history = []) {
       { role: 'assistant', content: m.bot || '' }
     ])
     ollamaMsg.push({ role: 'user', content: text })
-    const ollamaReply = await queryOllama(ollamaMsg)
+    
+    const recentContext = history.slice(-1).map(m => m.user).join(' ').slice(0, 100)
+    const systemPrompt = getTherapistSystemPrompt(userName, recentContext)
+    
+    const ollamaReply = await queryOllama(ollamaMsg, systemPrompt)
     if (ollamaReply && ollamaReply.length > 10) {
       return { reply: ollamaReply, emotion, source: 'ollama' }
     }
