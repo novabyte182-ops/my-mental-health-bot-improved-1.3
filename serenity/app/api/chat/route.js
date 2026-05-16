@@ -8,13 +8,13 @@ export async function POST(req) {
     if (!text?.trim()) return Response.json({ error: 'No message' }, { status: 400 })
 
     const result = await generateReply(text, history.slice(-10))
-    
+
     history.push({ user: text.slice(0, 500), bot: result.reply.slice(0, 1000), emotion: result.emotion, source: result.source, time: Date.now() })
     if (history.length > 100) history.splice(0, history.length - 100)
 
     return Response.json(result)
   } catch {
-    return Response.json({ reply: "I'm here to listen. Tell me more.", emotion: 'neutral', source: 'fallback' })
+    return Response.json({ reply: "I hear you. Tell me more about what's going on.", emotion: 'neutral', source: 'fallback' })
   }
 }
 
