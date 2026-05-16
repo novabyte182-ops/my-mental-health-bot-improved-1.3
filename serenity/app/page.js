@@ -25,7 +25,6 @@ export default function Home() {
   useEffect(() => { scrollToEnd() }, [msgs])
   const scrollToEnd = () => endRef.current?.scrollIntoView({ behavior: 'smooth' })
 
-  // Particles
   useEffect(() => {
     const c = canvasRef.current; if (!c) return
     const ctx = c.getContext('2d')
@@ -47,7 +46,6 @@ export default function Home() {
     return () => { cancelAnimationFrame(id); window.removeEventListener('resize', resize) }
   }, [])
 
-  // Init
   useEffect(() => {
     fetch('/api/ollama').then(r => r.json()).then(d => setOllamaStatus(d.online ? 'ollama' : 'template')).catch(() => setOllamaStatus('template'))
     fetch('/api/wellspring').then(r => r.json()).then(d => {
@@ -63,7 +61,6 @@ export default function Home() {
     try { const r = await fetch('/api/wellspring/mood'); const d = await r.json(); setMoodHistory(d.history || []); setMoodStats(d.stats || {}) } catch {}
   }
 
-  // Breathing timer
   useEffect(() => {
     if (!breathing) return
     const timer = setInterval(() => {
@@ -85,7 +82,7 @@ export default function Home() {
       const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: t }) })
       const d = await r.json()
       setMsgs(m => [...m, { role: 'bot', text: d.reply, emotion: d.emotion, source: d.source }])
-    } catch { setMsgs(m => [...m, { role: 'bot', text: "I'm here to listen. Tell me more." }]) }
+    } catch { setMsgs(m => [...m, { role: 'bot', text: "I'm here to listen. Tell me more about what's on your mind." }]) }
     setLoading(false)
   }, [input, loading])
 
@@ -100,19 +97,16 @@ export default function Home() {
       setJournalText(''); const r = await fetch('/api/wellspring/journal'); const d = await r.json(); setJournalEntries(d.entries || []) } catch {}
   }
 
-  const icon = (e) => ({ sad: '🌧️', anxious: '💫', angry: '🔥', stressed: '😮‍💨', lonely: '🌙', tired: '😴', hopeless: '🤍', happy: '☀️', grateful: '✨', neutral: '💭', crisis: '🤍' }[e] || '💭')
+  const icon = (e) => ({ sad: '🌧️', anxious: '💫', angry: '🔥', stressed: '😮‍💨', lonely: '🌙', tired: '😴', hopeless: '🤍', happy: '☀️', grateful: '✨', neutral: '💭', crisis: '🤍', guilty: '💭', hopeful: '🌟' }[e] || '💭')
 
   const NavBtn = ({ t, i }) => (
     <button onClick={() => setTab(t)} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${tab === t ? 'bg-purple-500/20 text-purple-300 shadow-sm' : 'text-white/40 hover:text-white/70 hover:bg-white/5'}`}>{i} {t}</button>
   )
 
-  const curBreath = breathing
-
   return (
     <div className="h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #0f0c29, #1a1a4e, #24243e)' }}>
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />
 
-      {/* Mobile/Desktop Nav */}
       <div className="relative z-10 flex items-center gap-2 p-3 pb-0 overflow-x-auto">
         <div className="flex items-center gap-2 mr-3 flex-shrink-0">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-cyan-400 flex items-center justify-center text-base font-bold shadow-lg shadow-purple-500/20">S</div>
@@ -121,10 +115,8 @@ export default function Home() {
         <NavBtn t="chat" i="💬" /><NavBtn t="wellness" i="🧘" /><NavBtn t="mood" i="📊" /><NavBtn t="journal" i="📝" />
       </div>
 
-      {/* Main */}
       <div className="relative z-10 flex-1 glass m-3 mt-2 flex flex-col overflow-hidden">
 
-        {/* ═══ CHAT ═══ */}
         {tab === 'chat' && <>
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5">
             <span className="text-xs text-white/40">💬 Chat <span className="text-[10px] ml-2 px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300">{ollamaStatus === 'ollama' ? 'Local AI' : 'Template'}</span></span>
@@ -153,9 +145,8 @@ export default function Home() {
           <div className="text-[9px] text-white/25 text-center py-1.5">Not a substitute for professional care. <a href="tel:988" className="text-cyan-400/70">988</a></div>
         </>}
 
-        {/* ═══ WELLNESS ═══ */}
         {tab === 'wellness' && <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          <p className="text-sm text-white/40">Simple practices to find calm and presence.</p>
+          <p className="text-sm text-white/40">Simple evidence-based practices to find calm and presence.</p>
 
           {breathing && <div className="glass p-5 text-center space-y-3">
             <div className="flex justify-center"><div className="breath-circle"><div className="breath-inner" /></div></div>
@@ -165,7 +156,7 @@ export default function Home() {
             <button onClick={() => { setBreathing(null); setBStep(0); setBCount(0) }} className="px-6 py-2 rounded-full bg-gradient-to-br from-purple-500 to-cyan-400 text-sm font-medium">Stop</button>
           </div>}
 
-          <div><div className="text-xs text-white/30 uppercase tracking-wider mb-2">Breathing</div>
+          <div><div className="text-xs text-white/30 uppercase tracking-wider mb-2">Breathing Exercises</div>
             {(wellnessData.breathing || []).map(ex => (
               <div key={ex.id} className="glass p-3 mb-1.5 cursor-pointer hover:bg-white/[0.08] transition-all" onClick={() => { const d = bDetails[ex.id]; if (d?.pattern) setBreathing(d); setBStep(0); setBCount(0) }}>
                 <div className="text-sm font-medium">{ex.icon} {ex.name}</div>
@@ -174,7 +165,7 @@ export default function Home() {
             ))}
           </div>
 
-          <div><div className="text-xs text-white/30 uppercase tracking-wider mb-2 mt-3">Grounding</div>
+          <div><div className="text-xs text-white/30 uppercase tracking-wider mb-2 mt-3">Grounding Techniques</div>
             {(wellnessData.grounding || []).map(ex => (
               <div key={ex.id} className="glass p-3 mb-1.5 cursor-pointer hover:bg-white/[0.08] transition-all" onClick={() => { const d = bDetails[ex.id]; if (d?.steps) setBreathing({ name: d.name, steps: d.steps, pattern: d.steps.map(s => ({ text: s, count: 4 })) }) }}>
                 <div className="text-sm font-medium">{ex.icon} {ex.name}</div>
@@ -184,9 +175,8 @@ export default function Home() {
           </div>
         </div>}
 
-        {/* ═══ MOOD ═══ */}
         {tab === 'mood' && <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          <p className="text-sm text-white/40">How are you feeling?</p>
+          <p className="text-sm text-white/40">How are you feeling right now?</p>
           <div className="grid grid-cols-5 gap-2">
             {MOOD_LEVELS.map(m => (
               <button key={m.key} onClick={() => logMood(m.key)} className="glass py-3 text-center hover:bg-white/[0.08] transition-all hover:-translate-y-0.5">
@@ -197,7 +187,7 @@ export default function Home() {
           </div>
           {moodMsg && <div className="text-xs text-emerald-400 anim-in">{moodMsg}</div>}
           <div>
-            <div className="text-xs text-white/30 uppercase tracking-wider mb-2">Trend</div>
+            <div className="text-xs text-white/30 uppercase tracking-wider mb-2">Mood Trend (Last 14 Days)</div>
             <div className="flex items-end gap-0.5 h-16 glass p-3">
               {moodHistory.length > 0 ? moodHistory.slice(-14).map((m, i) => (
                 <div key={i} className="flex-1 rounded-t relative hover:opacity-80 transition-all" style={{ height: `${(m.value / 5) * 100}%`, background: m.color, minHeight: 4 }}>
@@ -205,22 +195,23 @@ export default function Home() {
                 </div>
               )) : <div className="text-xs text-white/25 w-full text-center self-center">Log your mood to see trends</div>}
             </div>
-            {moodStats.count > 0 && <div className="text-xs text-white/40 mt-2">{moodStats.average}/5 · {moodStats.trend} · {moodStats.count} entries</div>}
+            {moodStats.count > 0 && <div className="text-xs text-white/40 mt-2">
+              Average: {moodStats.average}/5 · Trend: {moodStats.trend} · {moodStats.count} entries
+            </div>}
           </div>
         </div>}
 
-        {/* ═══ JOURNAL ═══ */}
         {tab === 'journal' && <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {dailyPrompt && <div className="glass p-3 cursor-pointer" onClick={() => setJournalText(dailyPrompt + '\n\n')}>
-            <div className="text-[10px] text-cyan-400 uppercase tracking-wider mb-0.5">Today's Prompt</div>
+            <div className="text-[10px] text-cyan-400 uppercase tracking-wider mb-0.5">Today's Reflection Prompt</div>
             <div className="text-sm text-white/60">{dailyPrompt}</div>
           </div>}
-          <textarea value={journalText} onChange={e => setJournalText(e.target.value)} rows={4} placeholder="Write whatever comes to mind..." className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white resize-none outline-none focus:border-purple-500/30 transition-all placeholder:text-white/30" />
-          <button onClick={saveJournal} disabled={!journalText.trim()} className="px-5 py-2 rounded-full bg-gradient-to-br from-purple-500 to-cyan-400 text-sm font-medium disabled:opacity-30 transition-all hover:scale-105">Save</button>
-          <div><div className="text-xs text-white/30 uppercase tracking-wider mb-2 mt-1">Recent</div>
+          <textarea value={journalText} onChange={e => setJournalText(e.target.value)} rows={4} placeholder="Write whatever comes to mind — no editing needed..." className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white resize-none outline-none focus:border-purple-500/30 transition-all placeholder:text-white/30" />
+          <button onClick={saveJournal} disabled={!journalText.trim()} className="px-5 py-2 rounded-full bg-gradient-to-br from-purple-500 to-cyan-400 text-sm font-medium disabled:opacity-30 transition-all hover:scale-105">Save Entry</button>
+          <div><div className="text-xs text-white/30 uppercase tracking-wider mb-2 mt-1">Recent Entries</div>
             {journalEntries.length > 0 ? journalEntries.slice(0, 5).map((e, i) => (
               <div key={i} className="glass p-3 mb-2"><div className="text-[10px] text-white/25 mb-0.5">{e.date}</div><div className="text-sm text-white/60 leading-relaxed">{e.text.slice(0, 200)}{e.text.length > 200 ? '...' : ''}</div></div>
-            )) : <div className="text-xs text-white/25">No entries yet.</div>}
+            )) : <div className="text-xs text-white/25">No entries yet. Try the daily prompt above.</div>}
           </div>
         </div>}
 

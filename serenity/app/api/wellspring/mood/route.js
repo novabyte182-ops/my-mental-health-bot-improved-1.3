@@ -17,8 +17,16 @@ export async function POST(req) {
 export async function GET() {
   const h = moods.slice(-14)
   const avg = h.length > 0 ? Math.round((h.reduce((a, m) => a + m.value, 0) / h.length) * 10) / 10 : 0
+  const recent = h.slice(-7)
+  const recentAvg = recent.length > 0 ? recent.reduce((a, m) => a + m.value, 0) / recent.length : 0
+  let trend = 'neutral'
+  if (h.length >= 7) {
+    if (recentAvg > avg + 0.3) trend = 'improving'
+    else if (recentAvg < avg - 0.3) trend = 'declining'
+    else trend = 'stable'
+  }
   return Response.json({
     history: h,
-    stats: { count: h.length, average: avg, trend: h.length > 0 ? (h.slice(-7).reduce((a, m) => a + m.value, 0) / Math.min(h.slice(-7).length, 1) > avg ? 'improving' : 'stable') : 'neutral' }
+    stats: { count: h.length, average: avg, trend }
   })
 }

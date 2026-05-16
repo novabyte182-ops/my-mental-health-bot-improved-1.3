@@ -14,7 +14,9 @@ export async function POST(req) {
     })
     if (entries.length > 500) entries.splice(0, entries.length - 500)
     return Response.json({ saved: true })
-  } catch { return Response.json({ error: 'Invalid' }, { status: 400 }) }
+  } catch {
+    return Response.json({ error: 'Invalid' }, { status: 400 })
+  }
 }
 
 export async function GET() {
